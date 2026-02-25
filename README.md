@@ -6,8 +6,6 @@ A bilingual (English/Chinese) web application for non-profit organizations to ma
 > This project was created for the **Hong Kong Productivity Council (HKPC) – NGO Innovation and Digital Technology Recognition Scheme** and is proud to be a **Finalist**.  
 > *Note: This is a work in progress – features and design are actively being refined.*
 
-![Dashboard Preview](screenshot.png)  
-*Example dashboard – replace with actual screenshot*
 
 ---
 
