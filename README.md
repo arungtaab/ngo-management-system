@@ -84,18 +84,6 @@ You need two files in your Apps Script project:
 
 ---
 
-## File Structure
-
-NGO-Management-System/
-├── Code.gs # All server‑side functions (Google Apps Script)
-├── index.html # Client‑side HTML, CSS, and JavaScript
-└── README.md # This file
-
-
-If you want to host this on GitHub, you can place the two files in the repository. Note that the `.gs` extension is not standard for GitHub, but you can keep it as `.js` or `.txt` – the important part is the content.
-
----
-
 ## Customization
 
 - **Data Structure** – Modify the `initializeData()` function in `Code.gs` to change default records or add new fields.
