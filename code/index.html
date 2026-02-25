@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGO Management System 管理系統</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #4e73df;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 25px;
+            height: 100%;
+            border-radius: 10px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .nav-pills .nav-link {
+            border-radius: 10px;
+            margin: 0 5px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-pills .nav-link.active {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: scale(1.05);
+        }
+        
+        .nav-pills .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: #4e73df;
+            border-radius: 2px;
+        }
+        
+        .page-indicator {
+            background: #e3f2fd;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4e73df;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .page-indicator .current-page {
+            color: #4e73df;
+            font-weight: 600;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            border-top: none;
+        }
+        
+        .badge {
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .search-box {
+            max-width: 300px;
+        }
+        
+        .btn-group-actions {
+            white-space: nowrap;
+        }
+        
+        .latest-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
+        }
+        
+        .latest-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .latest-item:last-child {
+            border-bottom: none;
+        }
+        
+        .progress-sm {
+            height: 8px;
+            margin-top: 5px;
+        }
+        
+        .program-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px;
+            }
+            .stat-number {
+                font-size: 2rem;
+            }
+            .search-box {
+                max-width: 100%;
+            }
+            .nav-pills .nav-link {
+                padding: 8px 15px;
+                margin: 2px;
+            }
+        }
+        
+        /* border color of eah page */
+        .page-dashboard { border-left-color: #4e73df; }
+        .page-volunteers { border-left-color: #1cc88a; }
+        .page-members { border-left-color: #36b9cc; }
+        .page-donations { border-left-color: #f6c23e; }
+        .page-todos { border-left-color: #e74a3b; }
+        .page-programs { border-left-color: #6f42c1; }
+        
+        /* background color of each card */
+        .stat-volunteers { background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); }
+        .stat-members { background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%); }
+        .stat-donations { background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%); }
+        .stat-todos { background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%); }
+        .stat-programs { background: linear-gradient(135deg, #6f42c1 0%, #4a2d8c 100%); }
+        
+        /* new CSS format */
+        .notes-badge {
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        
+        .notes-badge:hover {
+            opacity: 0.8;
+        }
+        
+        /* note format on dashboard */
+        .text-info.small {
+            font-size: 0.85em;
+            line-height: 1.3;
+        }
+        
+        /* note icon on table */
+        .bi-chat-left-text {
+            font-size: 0.9em;
+        }
+        
+        /* note modal */
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        
+        .modal-body .form-control {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        /* adjust */
+        @media (max-width: 768px) {
+            .btn-group-actions .btn {
+                margin-bottom: 3px;
+            }
+        }
+        
+        /* note special format */
+        .notes-modal-body {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .notes-content {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 150px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .info-row {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 2px;
+        }
+        
+        .info-value {
+            color: #212529;
+        }
+    </style>
+</head>
+<body>
+    <!-- loading animation -->
+    <div id="loading" class="loading" style="display: none;">
+        <div class="text-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+            <div class="mt-3">
+                <h5>Loading... 加載中...</h5>
+                <p id="loading-detail" class="text-muted small"></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-heart-fill text-primary me-2"></i>
+                        NGO Management System 管理系統
+                    </h2>
+                    <p class="text-muted mb-0" id="current-page-info">Dashboard 儀表板</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="loadDashboard()">
+                        <i class="bi bi-speedometer2"></i>
+                        Dashboard 儀表板
+                    </button>
+                    <button class="btn btn-success" onclick="showImportModal()">
+                        <i class="bi bi-upload"></i>
+                        Import 導入
+                    </button>
+                    <button class="btn btn-warning" onclick="exportData()">
+                        <i class="bi bi-download"></i>
+                        Export 導出
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 頁page indicator -->
+        <div class="page-indicator" id="page-indicator">
+            <div>
+                <span id="current-page-title">Dashboard 儀表板</span>
+                <span class="text-muted ms-2" id="page-stats">正在加載數據...</span>
+            </div>
+            <div class="text-muted small" id="last-updated">
+                <i class="bi bi-clock me-1"></i>
+                <span>最後更新: 正在加載...</span>
+            </div>
+        </div>
+        
+        <!-- navigation menu -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <nav class="nav nav-pills">
+                    <button class="nav-link active" onclick="loadDashboard()" id="nav-dashboard">
+                        <i class="bi bi-speedometer2 me-1"></i>
+                        Dashboard 儀表板
+                    </button>
+                    <button class="nav-link" onclick="loadData('volunteers')" id="nav-volunteers">
+                        <i class="bi bi-people-fill me-1"></i>
+                        Volunteers 義工
+                    </button>
+                    <button class="nav-link" onclick="loadData('members')" id="nav-members">
+                        <i class="bi bi-person-badge me-1"></i>
+                        Members 會員
+                    </button>
+                    <button class="nav-link" onclick="loadData('donations')" id="nav-donations">
+                        <i class="bi bi-cash-stack me-1"></i>
+                        Donations 捐款
+                    </button>
+                    <button class="nav-link" onclick="loadData('todos')" id="nav-todos">
+                        <i class="bi bi-check2-square me-1"></i>
+                        Todos 待辦事項
+                    </button>
+                    <button class="nav-link" onclick="loadData('programs')" id="nav-programs">
+                        <i class="bi bi-kanban me-1"></i>
+                        Programs 項目
+                    </button>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- main content -->
+        <div id="content">
+            <!-- initial content -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading... 加載中...</span>
+                </div>
+                <p class="mt-3">Loading application... 正在加載應用程序...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- add/edit data modal -->
+    <div class="modal fade" id="dataModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dataModalTitle">Add New Record 添加新記錄</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="dataModalBody">
+                    <!-- Form will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" id="editRecordId">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel 取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()" id="submitBtn">Submit 提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- import data modal -->
+    <div class="modal fade" id="importModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import from Google Sheets 從Google Sheets導入</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Google Sheets URL 網址</label>
+                        <input type="url" class="form-control" id="importUrl" 
+                               placeholder="https://docs.google.com/spreadsheets/d/...">
+                        <div class="form-text">
+                            Paste the URL of your Google Sheets document 貼上你的Google Sheets文件網址
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        The system will import data from all sheets in the document 系統會從文檔的所有工作表中導入數據
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel 取消</button>
+                    <button type="button" class="btn btn-primary" onclick="importFromSheet()">Import 導入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // global variable
+        let currentType = 'dashboard';
+        let currentSearchQuery = '';
+        let isEditing = false;
+        let editingRecordId = null;
+        
+        // initialize after success loading
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            loadDashboard();
+        });
+        
+        // show loading
+        function showLoading(detail) {
+            document.getElementById('loading').style.display = 'flex';
+            if (detail) {
+                document.getElementById('loading-detail').textContent = detail;
+            }
+        }
+        
+        // hide loading
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        // show error
+        function showError(message) {
+            hideLoading();
+            document.getElementById('content').innerHTML = `
+                <div class="alert alert-danger">
+                    <h5><i class="bi bi-exclamation-triangle"></i> Error 錯誤</h5>
+                    <p>${message}</p>
+                    <button class="btn btn-primary" onclick="loadDashboard()">
+                        Back to Dashboard 返回儀表板
+                    </button>
+                </div>
+            `;
+        }
+        
+        // show success message
+        function showSuccess(message) {
+            const alertHtml = `
+                <div class="alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3" style="z-index: 1100;">
+                    <i class="bi bi-check-circle me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', alertHtml);
+            
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert.position-fixed');
+                alerts.forEach(alert => alert.remove());
+            }, 3000);
+        }
+        
+        // update page indicator
+        function updatePageIndicator(type, data) {
+            const indicator = document.getElementById('page-indicator');
+            const title = document.getElementById('current-page-title');
+            const stats = document.getElementById('page-stats');
+            const pageInfo = document.getElementById('current-page-info');
+            
+            // remove all page class
+            indicator.className = indicator.className.replace(/page-\w+/g, '');
+            // add current page class
+            indicator.classList.add('page-' + type);
+            
+            const pageTitles = {
+                dashboard: 'Dashboard 儀表板',
+                volunteers: 'Volunteers 義工管理',
+                members: 'Members 會員管理',
+                donations: 'Donations 捐款管理',
+                todos: 'Todos 待辦事項',
+                programs: 'Programs 項目管理'
+            };
+            
+            const pageIcons = {
+                dashboard: 'speedometer2',
+                volunteers: 'people-fill',
+                members: 'person-badge',
+                donations: 'cash-stack',
+                todos: 'check2-square',
+                programs: 'kanban'
+            };
+            
+            title.textContent = pageTitles[type];
+            pageInfo.innerHTML = `<i class="bi bi-${pageIcons[type]} me-1"></i>${pageTitles[type]}`;
+            
+            if (type === 'dashboard') {
+                stats.textContent = 'Overview 總覽';
+            } else if (data && data.count !== undefined) {
+                stats.textContent = `${data.count} Records 條記錄`;
+            } else {
+                stats.textContent = 'Loading... 加載中...';
+            }
+        }
+        
+        // update time
+        function updateLastUpdated(time) {
+            document.getElementById('last-updated').innerHTML = `
+                <i class="bi bi-clock me-1"></i>
+                <span>最後更新 Last Updated: ${time}</span>
+            `;
+        }
+        
+        // update navigation status
+        function updateNavActive(type) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            const navId = 'nav-' + type;
+            const navButton = document.getElementById(navId);
+            if (navButton) {
+                navButton.classList.add('active');
+            }
+        }
+        
+        // load dashboard
+        function loadDashboard() {
+            showLoading('Loading dashboard... 加載儀表板...');
+            currentType = 'dashboard';
+            
+            updatePageIndicator('dashboard');
+            updateNavActive('dashboard');
+            
+            google.script.run
+                .withSuccessHandler(handleDashboardResponse)
+                .withFailureHandler(handleError)
+                .getDashboardStats();
+        }
+        
+        function handleDashboardResponse(result) {
+            hideLoading();
+            
+            if (!result.success) {
+                showError(result.message);
+                return;
+            }
+            
+            console.log('Dashboard response:', result);
+            
+            const stats = result.stats;
+            const latest = result.latest;
+            
+            updateLastUpdated(result.lastUpdated);
+            
+            const html = `
+                <!-- 統計卡片 -->
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stat-card stat-volunteers">
+                            <div class="stat-icon">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <div class="stat-number">${stats.volunteers.total}</div>
+                            <div class="stat-label">Volunteers 義工</div>
+                            <small>${stats.volunteers.active} Active 活躍</small>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stat-card stat-members">
+                            <div class="stat-icon">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <div class="stat-number">${stats.members.total}</div>
+                            <div class="stat-label">Members 會員</div>
+                            <small>${stats.members.newThisMonth} New this month 本月新增</small>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stat-card stat-donations">
+                            <div class="stat-icon">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <div class="stat-number">$${stats.donations.amount.toLocaleString()}</div>
+                            <div class="stat-label">Donations 捐款</div>
+                            <small>${stats.donations.total} Records 筆記錄</small>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stat-card stat-todos">
+                            <div class="stat-icon">
+                                <i class="bi bi-check2-square"></i>
+                            </div>
+                            <div class="stat-number">${stats.todos.pending}</div>
+                            <div class="stat-label">Pending Tasks 待辦事項</div>
+                            <small>${stats.todos.total} Total 總數</small>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stat-card stat-programs">
+                            <div class="stat-icon">
+                                <i class="bi bi-kanban"></i>
+                            </div>
+                            <div class="stat-number">${stats.programs.total}</div>
+                            <div class="stat-label">Programs 項目</div>
+                            <small>$${stats.programs.totalBudget.toLocaleString()} Budget 預算</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 快速統計 -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Quick Stats 快速統計</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <div class="text-muted small">Average Donation 平均捐款</div>
+                                            <div class="h4 text-success">$${stats.donations.average.toLocaleString()}</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="text-muted small">Active Programs 進行中項目</div>
+                                            <div class="h4 text-info">${stats.programs.active}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="mb-3">
+                                            <div class="text-muted small">Total Records 總記錄數</div>
+                                            <div class="h4 text-primary">${stats.volunteers.total + stats.members.total + stats.donations.total + stats.todos.total + stats.programs.total}</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="text-muted small">High Priority Tasks 高優先級任務</div>
+                                            <div class="h4 text-danger">${stats.todos.highPriority}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions 快速操作</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <button class="btn btn-primary w-100 mb-2" onclick="loadData('volunteers')">
+                                            <i class="bi bi-people-fill me-1"></i>Volunteers 義工
+                                        </button>
+                                    </div>
+                                    <div class="col-4">
+                                        <button class="btn btn-info w-100 mb-2" onclick="loadData('members')">
+                                            <i class="bi bi-person-badge me-1"></i>Members 會員
+                                        </button>
+                                    </div>
+                                    <div class="col-4">
+                                        <button class="btn btn-success w-100 mb-2" onclick="loadData('donations')">
+                                            <i class="bi bi-cash-stack me-1"></i>Donations 捐款
+                                        </button>
+                                    </div>
+                                    <div class="col-4">
+                                        <button class="btn btn-warning w-100" onclick="loadData('todos')">
+                                            <i class="bi bi-check2-square me-1"></i>Todos 待辦
+                                        </button>
+                                    </div>
+                                    <div class="col-4">
+                                        <button class="btn btn-purple w-100" onclick="loadData('programs')" style="background: #6f42c1; color: white;">
+                                            <i class="bi bi-kanban me-1"></i>Programs 項目
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 最新數據 -->
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-people me-2"></i>Latest Volunteers 最新義工</h6>
+                            </div>
+                            <div class="card-body">
+                                ${renderLatestList(latest.volunteers, 'volunteers')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Latest Members 最新會員</h6>
+                            </div>
+                            <div class="card-body">
+                                ${renderLatestList(latest.members, 'members')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-cash me-2"></i>Latest Donations 最新捐款</h6>
+                            </div>
+                            <div class="card-body">
+                                ${renderLatestList(latest.donations, 'donations')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-check2-square me-2"></i>Latest Todos 最新待辦</h6>
+                            </div>
+                            <div class="card-body">
+                                ${renderLatestList(latest.todos, 'todos')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-kanban me-2"></i>Latest Programs 最新項目</h6>
+                            </div>
+                            <div class="card-body">
+                                ${renderLatestList(latest.programs, 'programs')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+        }
+        
+        // render latest list
+        function renderLatestList(items, type) {
+            if (!items || items.length === 0) {
+                return `<div class="text-center text-muted py-3">No data 暫無數據</div>`;
+            }
+            
+            return items.map(item => `
+                <div class="latest-item">
+                    <div class="fw-bold">${item.name || item.donor || item.title || 'Unknown 未知'}</div>
+                    ${type === 'volunteers' ? `
+                        <div class="text-muted small">${item.skills || 'No skills 無技能'}</div>
+                        <span class="badge ${(item.status || '').includes('活躍') ? 'bg-success' : 'bg-warning'}">
+                            ${item.status === '活躍' ? 'Active 活躍' : (item.status || 'Unknown 未知')}
+                        </span>
+                        ${item.notes ? `<div class="text-info small mt-1"><i class="bi bi-chat-left-text"></i> ${item.notes.substring(0, 30)}${item.notes.length > 30 ? '...' : ''}</div>` : ''}
+                    ` : ''}
+                    ${type === 'members' ? `
+                        <div class="text-muted small">${item.interests || 'No interests 無興趣'}</div>
+                        <small class="text-muted">Joined: ${formatDate(item.joinDate)}</small>
+                        ${item.notes ? `<div class="text-info small mt-1"><i class="bi bi-chat-left-text"></i> ${item.notes.substring(0, 30)}${item.notes.length > 30 ? '...' : ''}</div>` : ''}
+                    ` : ''}
+                    ${type === 'donations' ? `
+                        <div class="text-muted small">${item.purpose || 'General 一般'}</div>
+                        <div class="text-success fw-bold">${item.currency || 'HKD'} ${(item.amount || 0).toLocaleString()}</div>
+                    ` : ''}
+                    ${type === 'todos' ? `
+                        <div class="text-muted small">${item.assignee || 'Unassigned 未指派'}</div>
+                        <span class="badge ${(item.priority || '').includes('高') ? 'bg-danger' : (item.priority || '').includes('中') ? 'bg-warning' : 'bg-info'}">
+                            ${item.priority === '高' ? 'High 高' : item.priority === '中' ? 'Medium 中' : item.priority === '低' ? 'Low 低' : (item.priority || 'Unknown 未知')}
+                        </span>
+                    ` : ''}
+                    ${type === 'programs' ? `
+                        <div class="text-muted small">${item.manager || 'No manager 無負責人'}</div>
+                        <div class="program-progress">
+                            <div class="flex-grow-1">
+                                <div class="progress progress-sm">
+                                    <div class="progress-bar ${item.progress >= 100 ? 'bg-success' : item.progress >= 50 ? 'bg-info' : 'bg-warning'}" 
+                                         style="width: ${item.progress || 0}%"></div>
+                                </div>
+                            </div>
+                            <span class="text-muted small">${item.progress || 0}%</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // load data table
+        function loadData(type) {
+            showLoading(`Loading ${type}... 加載${getTypeName(type)}...`);
+            currentType = type;
+            currentSearchQuery = '';
+            isEditing = false;
+            editingRecordId = null;
+            
+            updatePageIndicator(type);
+            updateNavActive(type);
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    handleDataResponse(result, type);
+                })
+                .withFailureHandler(handleError)
+                .getData(type);
+        }
+        
+        function handleDataResponse(result, type) {
+            hideLoading();
+            
+            if (!result.success) {
+                showError(result.message);
+                return;
+            }
+            
+            updatePageIndicator(type, { count: result.count });
+            renderDataTable(result.data, result.count, type);
+        }
+        
+        // get type name
+        function getTypeName(type) {
+            const names = {
+                volunteers: '義工',
+                members: '會員',
+                donations: '捐款',
+                todos: '待辦事項',
+                programs: '項目'
+            };
+            return names[type] || type;
+        }
+        
+        // search data
+        function searchData() {
+            const query = document.getElementById('searchInput').value.trim();
+            currentSearchQuery = query;
+            
+            if (!query) {
+                loadData(currentType);
+                return;
+            }
+            
+            showLoading(`Searching... 搜尋中...`);
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoading();
+                    if (result.success) {
+                        renderDataTable(result.data, result.count, currentType, query);
+                    } else {
+                        showError(result.message);
+                    }
+                })
+                .withFailureHandler(handleError)
+                .searchData(currentType, query);
+        }
+        
+        // render data table
+        function renderDataTable(data, count, type, searchQuery = '') {
+            if (data.length === 0) {
+                document.getElementById('content').innerHTML = `
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="bi bi-inbox text-muted fs-1"></i>
+                            <h5 class="mt-3">No data 暫無數據</h5>
+                            <button class="btn btn-primary mt-3" onclick="showAddForm()">
+                                <i class="bi bi-plus-circle"></i> Add New 添加新記錄
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const fields = [];
+            data.forEach(item => {
+                Object.keys(item).forEach(key => {
+                    if (key !== 'ID' && !fields.includes(key)) {
+                        fields.push(key);
+                    }
+                });
+            });
+            
+            const pageTitles = {
+                volunteers: 'Volunteers 義工管理',
+                members: 'Members 會員管理',
+                donations: 'Donations 捐款管理',
+                todos: 'Todos 待辦事項',
+                programs: 'Programs 項目管理'
+            };
+            
+            // add field label for note
+            const fieldLabels = {
+                notes: '備注 Notes'
+            };
+            
+            const html = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">${pageTitles[type]}</h5>
+                        <div>
+                            <button class="btn btn-primary" onclick="showAddForm()">
+                                <i class="bi bi-plus-circle"></i> Add 添加
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="text-muted mb-0">
+                                    ${count} Records 條記錄
+                                    ${searchQuery ? `(Search results 搜尋結果: "${searchQuery}")` : ''}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group search-box ms-auto">
+                                    <input type="text" class="form-control" id="searchInput" 
+                                           placeholder="Search... 搜尋..."
+                                           value="${currentSearchQuery || ''}"
+                                           onkeyup="if(event.key === 'Enter') searchData()">
+                                    <button class="btn btn-outline-secondary" onclick="searchData()">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    ${currentSearchQuery ? `
+                                        <button class="btn btn-outline-danger" onclick="clearSearch()">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        ${fields.map(field => `<th>${fieldLabels[field] || field}</th>`).join('')}
+                                        <th>Actions 操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.map(item => `
+                                        <tr>
+                                            <td><strong>${item.ID || ''}</strong></td>
+                                            ${fields.map(field => {
+                                                const value = item[field];
+                                                if (field === 'status') {
+                                                    const badgeClass = getStatusBadgeClass(value);
+                                                    return `<td><span class="badge ${badgeClass}">${formatValue(value, field)}</span></td>`;
+                                                } else if (field === 'priority') {
+                                                    const badgeClass = getPriorityBadgeClass(value);
+                                                    return `<td><span class="badge ${badgeClass}">${formatValue(value, field)}</span></td>`;
+                                                } else if (field === 'amount' || field === 'budget') {
+                                                    return `<td>${field === 'budget' ? '$' : ''}${(value || 0).toLocaleString()}${field === 'amount' ? ' ' + (item.currency || '') : ''}</td>`;
+                                                } else if (field === 'progress') {
+                                                    return `<td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                                <div class="progress-bar ${value >= 100 ? 'bg-success' : value >= 50 ? 'bg-info' : 'bg-warning'}" 
+                                                                     style="width: ${value || 0}%"></div>
+                                                            </div>
+                                                            <span class="text-muted small">${value || 0}%</span>
+                                                        </div>
+                                                    </td>`;
+                                                } else if (field.includes('Date')) {
+                                                    return `<td>${formatDate(value)}</td>`;
+                                                } else if (field === 'description') {
+                                                    const shortDesc = value ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : '';
+                                                    return `<td title="${value || ''}">${shortDesc}</td>`;
+                                                } else if (field === 'notes') {
+                                                    const shortNotes = value ? (value.length > 50 ? value.substring(0, 50) + '...' : value) : '';
+                                                    return `<td title="${value || ''}">
+                                                        ${value ? `<div class="d-flex align-items-center">
+                                                            <i class="bi bi-chat-left-text me-1 text-info"></i>
+                                                            <span>${shortNotes}</span>
+                                                        </div>` : '<span class="text-muted">無</span>'}
+                                                    </td>`;
+                                                }
+                                                return `<td>${value || ''}</td>`;
+                                            }).join('')}
+                                            <td class="btn-group-actions">
+                                                <button class="btn btn-warning btn-sm me-1" onclick="editRecord('${item.ID}')">
+                                                    <i class="bi bi-pencil"></i> Edit 編輯
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" onclick="deleteRecord('${item.ID}')">
+                                                    <i class="bi bi-trash"></i> Delete 刪除
+                                                </button>
+                                                ${(type === 'volunteers' || type === 'members') && item.notes ? `
+                                                    <button class="btn btn-info btn-sm mt-1" onclick="showNotes('${item.ID}', '${type}')" title="查看備注 View Notes">
+                                                        <i class="bi bi-chat-left-text"></i>
+                                                    </button>
+                                                ` : ''}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+        }
+        
+        // show note details
+        function showNotes(id, type) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        const record = result.data;
+                        const modalHtml = `
+                            <div class="modal fade" id="notesModal" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">
+                                                <i class="bi bi-chat-left-text text-info me-2"></i>
+                                                ${record.name} - 備注 Notes
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body notes-modal-body">
+                                            <div class="mb-4">
+                                                <div class="info-label">備注內容 Notes Content:</div>
+                                                <div class="notes-content">${record.notes || '無備注 No notes'}</div>
+                                            </div>
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <div class="info-row">
+                                                        <div class="info-label">電話 Phone:</div>
+                                                        <div class="info-value">${record.phone || ''}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="info-row">
+                                                        <div class="info-label">電郵 Email:</div>
+                                                        <div class="info-value">${record.email || ''}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            ${type === 'volunteers' ? `
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <div class="info-row">
+                                                            <div class="info-label">技能 Skills:</div>
+                                                            <div class="info-value">${record.skills || ''}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="info-row">
+                                                            <div class="info-label">狀態 Status:</div>
+                                                            <div class="info-value">
+                                                                <span class="badge ${getStatusBadgeClass(record.status)}">
+                                                                    ${formatValue(record.status, 'status')}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            ${type === 'members' ? `
+                                                <div class="info-row mb-3">
+                                                    <div class="info-label">興趣 Interests:</div>
+                                                    <div class="info-value">${record.interests || ''}</div>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            <div class="info-row">
+                                                <div class="info-label">加入日期 Join Date:</div>
+                                                <div class="info-value">${formatDate(record.joinDate)}</div>
+                                            </div>
+                                            
+                                            ${record.ID ? `
+                                                <div class="info-row">
+                                                    <div class="info-label">ID 編號:</div>
+                                                    <div class="info-value">${record.ID}</div>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                <i class="bi bi-x-circle me-1"></i>Close 關閉
+                                            </button>
+                                            <button type="button" class="btn btn-primary" onclick="editRecord('${id}')">
+                                                <i class="bi bi-pencil me-1"></i>Edit 編輯
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // remove existing modal
+                        const existingModal = document.getElementById('notesModal');
+                        if (existingModal) {
+                            existingModal.remove();
+                        }
+                        
+                        // add new modal
+                        document.body.insertAdjacentHTML('beforeend', modalHtml);
+                        
+                        // show modal
+                        const modal = new bootstrap.Modal(document.getElementById('notesModal'));
+                        modal.show();
+                    } else {
+                        showError(result.message);
+                    }
+                })
+                .withFailureHandler(handleError)
+                .getRecord(type, id);
+        }
+        
+        // edit record
+        function editRecord(id) {
+            showLoading('Loading record... 加載記錄...');
+            isEditing = true;
+            editingRecordId = id;
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        google.script.run
+                            .withSuccessHandler(function(templateResult) {
+                                hideLoading();
+                                if (templateResult.success) {
+                                    renderDataForm(templateResult.template, result.data);
+                                    const modal = new bootstrap.Modal(document.getElementById('dataModal'));
+                                    modal.show();
+                                } else {
+                                    showError(templateResult.message);
+                                }
+                            })
+                            .withFailureHandler(handleError)
+                            .getFormTemplate(currentType, id);
+                    } else {
+                        hideLoading();
+                        showError(result.message);
+                    }
+                })
+                .withFailureHandler(handleError)
+                .getRecord(currentType, id);
+        }
+        
+        // show add new form
+        function showAddForm() {
+            showLoading('Loading form... 加載表單...');
+            isEditing = false;
+            editingRecordId = null;
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoading();
+                    if (result.success) {
+                        renderDataForm(result.template);
+                        const modal = new bootstrap.Modal(document.getElementById('dataModal'));
+                        modal.show();
+                    } else {
+                        showError(result.message);
+                    }
+                })
+                .withFailureHandler(handleError)
+                .getFormTemplate(currentType);
+        }
+        
+        // render data form
+        function renderDataForm(template, recordData = null) {
+            const pageTitles = {
+                volunteers: isEditing ? 'Edit Volunteer 編輯義工' : 'Add Volunteer 添加義工',
+                members: isEditing ? 'Edit Member 編輯會員' : 'Add Member 添加會員',
+                donations: isEditing ? 'Edit Donation 編輯捐款' : 'Add Donation 添加捐款',
+                todos: isEditing ? 'Edit Todo 編輯待辦' : 'Add Todo 添加待辦',
+                programs: isEditing ? 'Edit Program 編輯項目' : 'Add Program 添加項目'
+            };
+            
+            let formHtml = '';
+            
+            template.forEach(field => {
+                const required = field.required ? 'required' : '';
+                const value = recordData ? recordData[field.name] || '' : '';
+                const minAttr = field.min ? `min="${field.min}"` : '';
+                const maxAttr = field.max ? `max="${field.max}"` : '';
+                
+                if (field.type === 'select') {
+                    let optionsHtml = `<option value="">Select... 請選擇</option>`;
+                    if (field.options) {
+                        field.options.forEach(option => {
+                            const selected = value === option || (typeof value === 'string' && value.includes(option)) ? 'selected' : '';
+                            optionsHtml += `<option value="${option}" ${selected}>${option}</option>`;
+                        });
+                    }
+                    
+                    formHtml += `
+                        <div class="mb-3">
+                            <label class="form-label">${field.label}${field.required ? ' *' : ''}</label>
+                            <select class="form-select" name="${field.name}" ${required}>
+                                ${optionsHtml}
+                            </select>
+                        </div>
+                    `;
+                } else if (field.type === 'textarea') {
+                    formHtml += `
+                        <div class="mb-3">
+                            <label class="form-label">${field.label}${field.required ? ' *' : ''}</label>
+                            <textarea class="form-control" name="${field.name}" rows="3" ${required}>${value}</textarea>
+                        </div>
+                    `;
+                } else {
+                    formHtml += `
+                        <div class="mb-3">
+                            <label class="form-label">${field.label}${field.required ? ' *' : ''}</label>
+                            <input type="${field.type}" class="form-control" name="${field.name}" 
+                                   value="${value}" ${required} ${minAttr} ${maxAttr}>
+                        </div>
+                    `;
+                }
+            });
+            
+            document.getElementById('dataModalTitle').textContent = pageTitles[currentType];
+            document.getElementById('dataModalBody').innerHTML = formHtml;
+            document.getElementById('editRecordId').value = editingRecordId || '';
+            document.getElementById('submitBtn').textContent = isEditing ? 'Update 更新' : 'Submit 提交';
+        }
+        
+        // submit form
+        function submitForm() {
+            const formData = {};
+            const inputs = document.querySelectorAll('#dataModalBody input, #dataModalBody select, #dataModalBody textarea');
+            
+            let isValid = true;
+            inputs.forEach(input => {
+                if (input.required && !input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                    if (input.name) {
+                        formData[input.name] = input.value;
+                    }
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please fill all required fields 請填寫所有必填字段');
+                return;
+            }
+            
+            showLoading(isEditing ? 'Updating... 正在更新...' : 'Submitting... 正在提交...');
+            
+            if (isEditing) {
+                const recordId = document.getElementById('editRecordId').value;
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        hideLoading();
+                        if (result.success) {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('dataModal'));
+                            modal.hide();
+                            showSuccess('Updated successfully! 更新成功！');
+                            loadData(currentType);
+                        } else {
+                            showError(result.message);
+                        }
+                    })
+                    .withFailureHandler(handleError)
+                    .updateData(currentType, recordId, formData);
+            } else {
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        hideLoading();
+                        if (result.success) {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('dataModal'));
+                            modal.hide();
+                            showSuccess('Added successfully! 添加成功！');
+                            loadData(currentType);
+                        } else {
+                            showError(result.message);
+                        }
+                    })
+                    .withFailureHandler(handleError)
+                    .addData(currentType, formData);
+            }
+        }
+        
+        // delete record
+        function deleteRecord(id) {
+            if (!confirm('Are you sure you want to delete? 確定要刪除嗎？')) return;
+            
+            showLoading('Deleting... 正在刪除...');
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoading();
+                    if (result.success) {
+                        showSuccess('Deleted successfully! 刪除成功！');
+                        if (currentSearchQuery) {
+                            searchData();
+                        } else {
+                            loadData(currentType);
+                        }
+                    } else {
+                        showError(result.message);
+                    }
+                })
+                .withFailureHandler(handleError)
+                .deleteData(currentType, id);
+        }
+        
+        // clear search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            currentSearchQuery = '';
+            loadData(currentType);
+        }
+        
+        // format value
+        function formatValue(value, field) {
+            if (!value && value !== 0) return '';
+            
+            if (field === 'status') {
+                if (value === '活躍' || value === '活躍 Active') return 'Active 活躍';
+                if (value === '休假中' || value === '休假中 On Leave') return 'On Leave 休假中';
+                if (value === '離職' || value === '離職 Inactive') return 'Inactive 離職';
+                if (value === '待處理' || value === '待處理 Pending') return 'Pending 待處理';
+                if (value === '進行中' || value === '進行中 In Progress') return 'In Progress 進行中';
+                if (value === '已完成' || value === '已完成 Completed') return 'Completed 已完成';
+                if (value === '計劃中' || value === '計劃中 Planned') return 'Planned 計劃中';
+                if (value === '取消' || value === '取消 Cancelled') return 'Cancelled 取消';
+                return value;
+            }
+            
+            return value;
+        }
+        
+        // format date
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                return date.toLocaleDateString('zh-HK');
+            } catch {
+                return dateStr;
+            }
+        }
+        
+        // get status badge class
+        function getStatusBadgeClass(status) {
+            if (!status) return 'bg-secondary';
+            
+            const statusStr = String(status).toLowerCase();
+            if (statusStr.includes('active') || statusStr.includes('活躍') || statusStr.includes('completed') || statusStr.includes('已完成')) {
+                return 'bg-success';
+            }
+            if (statusStr.includes('pending') || statusStr.includes('待處理') || statusStr.includes('進行中') || statusStr.includes('計劃中')) {
+                return 'bg-warning';
+            }
+            if (statusStr.includes('cancelled') || statusStr.includes('取消')) {
+                return 'bg-danger';
+            }
+            return 'bg-secondary';
+        }
+        
+        // get priority badge class
+        function getPriorityBadgeClass(priority) {
+            if (!priority) return 'bg-secondary';
+            
+            const priorityStr = String(priority).toLowerCase();
+            if (priorityStr.includes('high') || priorityStr.includes('高')) {
+                return 'bg-danger';
+            }
+            if (priorityStr.includes('medium') || priorityStr.includes('中')) {
+                return 'bg-warning';
+            }
+            if (priorityStr.includes('low') || priorityStr.includes('低')) {
+                return 'bg-info';
+            }
+            return 'bg-secondary';
+        }
+        
+        // show import modal
+        function showImportModal() {
+            document.getElementById('importUrl').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('importModal'));
+            modal.show();
+        }
+        
+        // import form Google Sheets
+        function importFromSheet() {
+            const url = document.getElementById('importUrl').value.trim();
+            
+            if (!url) {
+                alert('Please enter Google Sheets URL 請輸入Google Sheets網址');
+                return;
+            }
+            
+            showLoading('Importing... 正在導入...');
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoading();
+                    if (result.success) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
+                        modal.hide();
+                        showSuccess('Imported successfully! 導入成功！');
+                        loadDashboard();
+                    } else {
+                        showError(result.message);
+                    }
+                })
+                .withFailureHandler(handleError)
+                .importFromGoogleSheet(url);
+        }
+        
+        // export data
+        function exportData() {
+            showLoading('Exporting... 正在導出...');
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoading();
+                    if (result.success) {
+                        showSuccess('Exported successfully! 導出成功！');
+                        window.open(result.spreadsheetUrl, '_blank');
+                    } else {
+                        showError(result.message);
+                    }
+                })
+                .withFailureHandler(handleError)
+                .exportToGoogleSheet();
+        }
+        
+        // handle error
+        function handleError(error) {
+            console.error('Error:', error);
+            showError(error.message || 'An error occurred 發生錯誤');
+        }
+    </script>
+</body>
+</html>
